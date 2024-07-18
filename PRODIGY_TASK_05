@@ -1,0 +1,38 @@
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+
+url = 'https://www.example.com/s?k=products'
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'}
+response = requests.get(url, headers=headers)
+soup = BeautifulSoup(response.content, 'html.parser')
+
+product_names = []
+product_prices = []
+product_ratings = []
+
+products = soup.find_all('div', class_='s-result-item')
+
+for product in products:
+    name = product.find('span', class_='a-size-medium')
+    if name:
+        product_names.append(name.text.strip())
+    else:
+        product_names.append(None)
+    
+    price = product.find('span', class_='a-offscreen')
+    if price:
+        product_prices.append(price.text.strip())
+    else:
+        product_prices.append(None)
+    
+    rating = product.find('span', class_='a-icon-alt')
+    if rating:
+        product_ratings.append(rating.text.strip())
+    else:
+        product_ratings.append(None)
+
+data = {'Product Name': product_names, 'Price': product_prices, 'Rating': product_ratings}
+df = pd.DataFrame(data)
+
+df.to_csv('products.csv', index=False)
